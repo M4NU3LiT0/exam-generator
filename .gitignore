@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build
+dist/
+build/
+
+# Testing
+coverage/
+
+# Misc
+.cache/
+temp/

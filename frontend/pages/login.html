@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Sistema de Exámenes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="bi bi-mortarboard-fill"></i> Sistema de Exámenes
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                        </h2>
+                        
+                        <div id="alertContainer"></div>
+                        
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Correo Electrónico</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                            </button>
+                        </form>
+                        
+                        <hr class="my-4">
+                        
+                        <p class="text-center mb-0">
+                            ¿No tienes cuenta? 
+                            <a href="register.html">Regístrate aquí</a>
+                        </p>
+
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="fw-bold">Cuentas de prueba:</h6>
+                            <p class="mb-1 small"><strong>Profesor:</strong> teacher@test.com / password123</p>
+                            <p class="mb-0 small"><strong>Estudiante:</strong> student@test.com / password123</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Verificar si ya está autenticado
+        const { user } = checkAuth();
+        if (user) {
+            redirectByRole(user);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Iniciando...';
+            alertContainer.innerHTML = '';
+            
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                const response = await API.post('/auth/login', { email, password });
+                
+                if (response.success) {
+                    saveSession(response.data);
+                    
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            ¡Bienvenido! Redirigiendo...
+                        </div>
+                    `;
+                    
+                    setTimeout(() => {
+                        redirectByRole(response.data);
+                    }, 1000);
+                }
+            } catch (error) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        ${error.message || 'Error al iniciar sesión'}
+                    </div>
+                `;
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión';
+            }
+        });
+    </script>
+</body>
+</html>

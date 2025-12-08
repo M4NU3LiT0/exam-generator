@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Profesor - Sistema de Exámenes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-mortarboard-fill"></i> Sistema de Exámenes - Profesor
+            </a>
+            <ul class="navbar-nav ms-auto" id="navMenu"></ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Dashboard del Profesor</h1>
+        
+        <!-- Estadísticas -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card primary">
+                    <div class="card-body">
+                        <h6 class="text-muted">Total Exámenes</h6>
+                        <div class="stat-value text-primary" id="totalExams">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card success">
+                    <div class="card-body">
+                        <h6 class="text-muted">Exámenes Activos</h6>
+                        <div class="stat-value text-success" id="activeExams">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card warning">
+                    <div class="card-body">
+                        <h6 class="text-muted">Entregas Totales</h6>
+                        <div class="stat-value text-warning" id="totalSubmissions">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card danger">
+                    <div class="card-body">
+                        <h6 class="text-muted">Promedio General</h6>
+                        <div class="stat-value text-danger" id="averageScore">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón crear examen -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Mis Exámenes</h3>
+            <button class="btn btn-primary" onclick="location.href='create-exam.html'">
+                <i class="bi bi-plus-circle"></i> Crear Examen
+            </button>
+        </div>
+
+        <!-- Lista de exámenes -->
+        <div id="examsContainer">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Cargando exámenes...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        const user = requireAuth('teacher');
+        if (!user) return;
+
+        async function loadDashboard() {
+            try {
+                // Cargar estadísticas
+                const stats = await API.get('/results/stats/dashboard');
+                if (stats.success) {
+                    document.getElementById('totalExams').textContent = stats.data.totalExams;
+                    document.getElementById('activeExams').textContent = stats.data.activeExams;
+                    document.getElementById('totalSubmissions').textContent = stats.data.totalSubmissions;
+                    document.getElementById('averageScore').textContent = stats.data.averageScore + '%';
+                }
+
+                // Cargar exámenes
+                const exams = await API.get('/exams');
+                displayExams(exams.data);
+            } catch (error) {
+                console.error('Error:', error);
+                Utils.showAlert('Error al cargar datos: ' + error.message, 'danger');
+            }
+        }
+
+        function displayExams(exams) {
+            const container = document.getElementById('examsContainer');
+            
+            if (!exams || exams.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <p class="text-muted">No tienes exámenes creados aún</p>
+                        <button class="btn btn-primary" onclick="location.href='create-exam.html'">
+                            <i class="bi bi-plus-circle"></i> Crear mi primer examen
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = exams.map(exam => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="card-title mb-2">
+                                    ${exam.title}
+                                    ${exam.isActive 
+                                        ? '<span class="badge bg-success ms-2">Activo</span>' 
+                                        : '<span class="badge bg-secondary ms-2">Inactivo</span>'}
+                                </h5>
+                                <p class="card-text text-muted mb-2">${exam.description}</p>
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span><i class="bi bi-book"></i> ${exam.subject}</span>
+                                    <span><i class="bi bi-clock"></i> ${exam.duration} min</span>
+                                    <span><i class="bi bi-star"></i> ${exam.totalPoints} pts</span>
+                                    <span><i class="bi bi-question-circle"></i> ${exam.questions?.length || 0} preguntas</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${exam._id}')">
+                                        <i class="bi bi-graph-up"></i> Resultados
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="editExam('${exam._id}')">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-${exam.isActive ? 'warning' : 'success'}" 
+                                            onclick="toggleExam('${exam._id}', ${exam.isActive})">
+                                        <i class="bi bi-toggle-${exam.isActive ? 'on' : 'off'}"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteExam('${exam._id}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function toggleExam(examId, currentStatus) {
+            try {
+                await API.patch(`/exams/${examId}/toggle-active`);
+                Utils.showAlert(`Examen ${currentStatus ? 'desactivado' : 'activado'} exitosamente`, 'success');
+                loadDashboard();
+            } catch (error) {
+                Utils.showAlert('Error: ' + error.message, 'danger');
+            }
+        }
+
+        async function deleteExam(examId) {
+            if (!await Utils.confirm('¿Estás seguro de eliminar este examen? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                await API.delete(`/exams/${examId}`);
+                Utils.showAlert('Examen eliminado exitosamente', 'success');
+                loadDashboard();
+            } catch (error) {
+                Utils.showAlert('Error: ' + error.message, 'danger');
+            }
+        }
+
+        function editExam(examId) {
+            location.href = `edit-exam.html?id=${examId}`;
+        }
+
+        function viewResults(examId) {
+            location.href = `exam-results.html?id=${examId}`;
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

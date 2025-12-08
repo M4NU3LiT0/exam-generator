@@ -1,0 +1,271 @@
+{
+  "info": {
+    "name": "Sistema de Exámenes API",
+    "description": "Colección completa de endpoints para el Sistema de Exámenes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Profesor\",\n  \"email\": \"teacher@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"teacher\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exams",
+      "item": [
+        {
+          "name": "Create Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Examen de Matemáticas\",\n  \"description\": \"Examen de álgebra básica\",\n  \"subject\": \"Matemáticas\",\n  \"duration\": 60,\n  \"totalPoints\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/exams",
+              "host": ["{{base_url}}"],
+              "path": ["exams"]
+            }
+          }
+        },
+        {
+          "name": "Get All Exams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/exams",
+              "host": ["{{base_url}}"],
+              "path": ["exams"]
+            }
+          }
+        },
+        {
+          "name": "Get Exam by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/exams/:id",
+              "host": ["{{base_url}}"],
+              "path": ["exams", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "exam_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Toggle Exam Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/exams/:id/toggle-active",
+              "host": ["{{base_url}}"],
+              "path": ["exams", ":id", "toggle-active"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "exam_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Create Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examId\": \"exam_id_here\",\n  \"questionText\": \"¿Cuánto es 2 + 2?\",\n  \"questionType\": \"multiple-choice\",\n  \"options\": [\n    {\"text\": \"3\", \"isCorrect\": false},\n    {\"text\": \"4\", \"isCorrect\": true},\n    {\"text\": \"5\", \"isCorrect\": false}\n  ],\n  \"points\": 10,\n  \"order\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/questions",
+              "host": ["{{base_url}}"],
+              "path": ["questions"]
+            }
+          }
+        },
+        {
+          "name": "Get Questions by Exam",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/questions/exam/:examId",
+              "host": ["{{base_url}}"],
+              "path": ["questions", "exam", ":examId"],
+              "variable": [
+                {
+                  "key": "examId",
+                  "value": "exam_id_here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Results",
+      "item": [
+        {
+          "name": "Submit Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examId\": \"exam_id_here\",\n  \"answers\": [\n    {\n      \"questionId\": \"question_id_1\",\n      \"selectedAnswer\": \"option_id_or_text\"\n    },\n    {\n      \"questionId\": \"question_id_2\",\n      \"selectedAnswer\": \"option_id_or_text\"\n    }\n  ],\n  \"timeTaken\": 1800\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/results",
+              "host": ["{{base_url}}"],
+              "path": ["results"]
+            }
+          }
+        },
+        {
+          "name": "Get My Results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/results/my-results",
+              "host": ["{{base_url}}"],
+              "path": ["results", "my-results"]
+            }
+          }
+        },
+        {
+          "name": "Get Results by Exam",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/results/exam/:examId",
+              "host": ["{{base_url}}"],
+              "path": ["results", "exam", ":examId"],
+              "variable": [
+                {
+                  "key": "examId",
+                  "value": "exam_id_here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/results/stats/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["results", "stats", "dashboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
