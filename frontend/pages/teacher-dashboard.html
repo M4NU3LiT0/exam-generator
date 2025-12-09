@@ -6,7 +6,19 @@
     <title>Dashboard Profesor - Sistema de Exámenes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .stat-card {
+            border-left: 4px solid;
+        }
+        .stat-card.primary { border-left-color: #0d6efd; }
+        .stat-card.success { border-left-color: #198754; }
+        .stat-card.warning { border-left-color: #ffc107; }
+        .stat-card.danger { border-left-color: #dc3545; }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -14,13 +26,26 @@
             <a class="navbar-brand" href="#">
                 <i class="bi bi-mortarboard-fill"></i> Sistema de Exámenes - Profesor
             </a>
-            <ul class="navbar-nav ms-auto" id="navMenu"></ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> <span id="userName">Profesor</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </nav>
 
     <div class="container mt-4">
         <h1 class="mb-4">Dashboard del Profesor</h1>
         
+        <div id="alertContainer"></div>
+
         <!-- Estadísticas -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
@@ -57,15 +82,46 @@
             </div>
         </div>
 
-        <!-- Botón crear examen -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Mis Exámenes</h3>
-            <button class="btn btn-primary" onclick="location.href='create-exam.html'">
-                <i class="bi bi-plus-circle"></i> Crear Examen
-            </button>
+        <!-- Crear examen -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Crear Nuevo Examen</h5>
+            </div>
+            <div class="card-body">
+                <form id="createExamForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Título</label>
+                            <input type="text" class="form-control" id="examTitle" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Materia</label>
+                            <input type="text" class="form-control" id="examSubject" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="examDescription" rows="2" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Duración (minutos)</label>
+                            <input type="number" class="form-control" id="examDuration" value="60" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Puntos Totales</label>
+                            <input type="number" class="form-control" id="examPoints" value="100" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Crear Examen
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Lista de exámenes -->
+        <h3 class="mb-3">Mis Exámenes</h3>
         <div id="examsContainer">
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
@@ -75,16 +131,74 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/auth.js"></script>
     <script>
-        const user = requireAuth('teacher');
-        if (!user) return;
+        // Configuración
+        const API_URL = 'https://exam-generator-xfaq.onrender.com/api';
 
+        // Verificar autenticación
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        if (!token || !user || user.role !== 'teacher') {
+            alert('Debes iniciar sesión como profesor');
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('userName').textContent = user.name;
+
+        // Funciones de API
+        async function apiRequest(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error en la petición');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Cargar dashboard
         async function loadDashboard() {
             try {
                 // Cargar estadísticas
-                const stats = await API.get('/results/stats/dashboard');
+                const stats = await apiRequest('/results/stats/dashboard');
                 if (stats.success) {
                     document.getElementById('totalExams').textContent = stats.data.totalExams;
                     document.getElementById('activeExams').textContent = stats.data.activeExams;
@@ -93,11 +207,11 @@
                 }
 
                 // Cargar exámenes
-                const exams = await API.get('/exams');
+                const exams = await apiRequest('/exams');
                 displayExams(exams.data);
             } catch (error) {
                 console.error('Error:', error);
-                Utils.showAlert('Error al cargar datos: ' + error.message, 'danger');
+                showAlert('Error al cargar datos: ' + error.message, 'danger');
             }
         }
 
@@ -109,9 +223,6 @@
                     <div class="text-center py-5">
                         <i class="bi bi-inbox fs-1 text-muted"></i>
                         <p class="text-muted">No tienes exámenes creados aún</p>
-                        <button class="btn btn-primary" onclick="location.href='create-exam.html'">
-                            <i class="bi bi-plus-circle"></i> Crear mi primer examen
-                        </button>
                     </div>
                 `;
                 return;
@@ -137,21 +248,14 @@
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewResults('${exam._id}')">
-                                        <i class="bi bi-graph-up"></i> Resultados
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-info" onclick="editExam('${exam._id}')">
-                                        <i class="bi bi-pencil"></i> Editar
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-${exam.isActive ? 'warning' : 'success'}" 
-                                            onclick="toggleExam('${exam._id}', ${exam.isActive})">
-                                        <i class="bi bi-toggle-${exam.isActive ? 'on' : 'off'}"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteExam('${exam._id}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                                <button class="btn btn-sm btn-outline-${exam.isActive ? 'warning' : 'success'}" 
+                                        onclick="toggleExam('${exam._id}', ${exam.isActive})">
+                                    <i class="bi bi-toggle-${exam.isActive ? 'on' : 'off'}"></i>
+                                    ${exam.isActive ? 'Desactivar' : 'Activar'}
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteExam('${exam._id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -159,38 +263,57 @@
             `).join('');
         }
 
+        // Crear examen
+        document.getElementById('createExamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const examData = {
+                title: document.getElementById('examTitle').value,
+                description: document.getElementById('examDescription').value,
+                subject: document.getElementById('examSubject').value,
+                duration: parseInt(document.getElementById('examDuration').value),
+                totalPoints: parseInt(document.getElementById('examPoints').value)
+            };
+
+            try {
+                const response = await apiRequest('/exams', {
+                    method: 'POST',
+                    body: JSON.stringify(examData)
+                });
+
+                if (response.success) {
+                    showAlert('¡Examen creado exitosamente!', 'success');
+                    document.getElementById('createExamForm').reset();
+                    loadDashboard();
+                }
+            } catch (error) {
+                showAlert('Error al crear examen: ' + error.message, 'danger');
+            }
+        });
+
         async function toggleExam(examId, currentStatus) {
             try {
-                await API.patch(`/exams/${examId}/toggle-active`);
-                Utils.showAlert(`Examen ${currentStatus ? 'desactivado' : 'activado'} exitosamente`, 'success');
+                await apiRequest(`/exams/${examId}/toggle-active`, { method: 'PATCH' });
+                showAlert(`Examen ${currentStatus ? 'desactivado' : 'activado'} exitosamente`, 'success');
                 loadDashboard();
             } catch (error) {
-                Utils.showAlert('Error: ' + error.message, 'danger');
+                showAlert('Error: ' + error.message, 'danger');
             }
         }
 
         async function deleteExam(examId) {
-            if (!await Utils.confirm('¿Estás seguro de eliminar este examen? Esta acción no se puede deshacer.')) {
-                return;
-            }
+            if (!confirm('¿Estás seguro de eliminar este examen?')) return;
 
             try {
-                await API.delete(`/exams/${examId}`);
-                Utils.showAlert('Examen eliminado exitosamente', 'success');
+                await apiRequest(`/exams/${examId}`, { method: 'DELETE' });
+                showAlert('Examen eliminado exitosamente', 'success');
                 loadDashboard();
             } catch (error) {
-                Utils.showAlert('Error: ' + error.message, 'danger');
+                showAlert('Error: ' + error.message, 'danger');
             }
         }
 
-        function editExam(examId) {
-            location.href = `edit-exam.html?id=${examId}`;
-        }
-
-        function viewResults(examId) {
-            location.href = `exam-results.html?id=${examId}`;
-        }
-
+        // Cargar al iniciar
         loadDashboard();
     </script>
 </body>
