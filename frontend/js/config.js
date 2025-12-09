@@ -18,7 +18,7 @@ class API {
         }
 
         try {
-            const response = await fetch(`${API_URL}${endpoint}`, {
+            const response = await fetch(`${API_URL}${endpoint}`, {  // ← CORREGIDO AQUÍ
                 ...options,
                 headers
             });
