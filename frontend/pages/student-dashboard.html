@@ -3,59 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Sistema de Exámenes</title>
+    <title>Dashboard Estudiante - Sistema de Exámenes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body class="bg-light">
+<body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
-                <i class="bi bi-mortarboard-fill"></i> Sistema de Exámenes
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-mortarboard-fill"></i> Sistema de Exámenes - Estudiante
             </a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> <span id="userName">Estudiante</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">
-                            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                        </h2>
-                        
-                        <div id="alertContainer"></div>
-                        
-                        <form id="loginForm">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Correo Electrónico</label>
-                                <input type="email" class="form-control" id="email" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" required>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100" id="submitBtn">
-                                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                            </button>
-                        </form>
-                        
-                        <hr class="my-4">
-                        
-                        <p class="text-center mb-0">
-                            ¿No tienes cuenta? 
-                            <a href="register.html">Regístrate aquí</a>
-                        </p>
+    <div class="container mt-4">
+        <h1 class="mb-4">Mis Exámenes</h1>
+        
+        <div id="alertContainer"></div>
+        
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#available">
+                    <i class="bi bi-file-earmark-text"></i> Disponibles
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#completed">
+                    <i class="bi bi-check-circle"></i> Completados
+                </button>
+            </li>
+        </ul>
 
-                        <div class="mt-4 p-3 bg-light rounded">
-                            <h6 class="fw-bold">Cuentas de prueba:</h6>
-                            <p class="mb-1 small"><strong>Profesor:</strong> teacher@test.com / password123</p>
-                            <p class="mb-0 small"><strong>Estudiante:</strong> student@test.com / password123</p>
-                        </div>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="available">
+                <div id="availableExams">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Cargando exámenes...</p>
                     </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="completed">
+                <div id="completedExams">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Cargando resultados...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para presentar examen -->
+    <div class="modal fade" id="examModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="examModalTitle">Examen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="examModalBody">
+                    <!-- Aquí se cargarán las preguntas -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitExam()">Enviar Examen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de resultados -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Resultado del Examen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="resultModalBody">
+                    <!-- Aquí se mostrará el resultado -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -63,18 +105,49 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Configuración
         const API_URL = 'https://exam-generator-xfaq.onrender.com/api';
 
-        // Verificar si ya está autenticado
+        // Verificar autenticación
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || 'null');
-        
-        if (token && user) {
-            // Redirigir según rol
-            if (user.role === 'teacher') {
-                window.location.href = 'teacher-dashboard.html';
-            } else {
-                window.location.href = 'student-dashboard.html';
+
+        if (!token || !user || user.role !== 'student') {
+            alert('Debes iniciar sesión como estudiante');
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('userName').textContent = user.name;
+            loadExams();
+        }
+
+        // Variables globales
+        let currentExam = null;
+        let currentQuestions = [];
+
+        // Funciones de API
+        async function apiRequest(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error en la petición');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
             }
         }
 
@@ -89,63 +162,242 @@
             const container = document.getElementById('alertContainer');
             container.innerHTML = '';
             container.appendChild(alertDiv);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const alertContainer = document.getElementById('alertContainer');
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Iniciando...';
-            alertContainer.innerHTML = '';
-            
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        async function loadExams() {
             try {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
+                const [examsResponse, resultsResponse] = await Promise.all([
+                    apiRequest('/exams'),
+                    apiRequest('/results/my-results')
+                ]);
+
+                const allExams = examsResponse.data;
+                const completedResults = resultsResponse.data;
+
+                const completedExamIds = completedResults.map(r => r.exam._id);
+                const availableExams = allExams.filter(e => !completedExamIds.includes(e._id));
+
+                displayAvailable(availableExams);
+                displayCompleted(completedResults);
+            } catch (error) {
+                showAlert('Error al cargar exámenes: ' + error.message, 'danger');
+            }
+        }
+
+        function displayAvailable(exams) {
+            const container = document.getElementById('availableExams');
+            
+            if (!exams.length) {
+                container.innerHTML = '<p class="text-muted text-center py-5">No hay exámenes disponibles</p>';
+                return;
+            }
+
+            container.innerHTML = exams.map(exam => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">${exam.title}</h5>
+                        <p class="card-text text-muted">${exam.description}</p>
+                        <div class="d-flex gap-3 mb-3">
+                            <span><i class="bi bi-book"></i> ${exam.subject}</span>
+                            <span><i class="bi bi-clock"></i> ${exam.duration} min</span>
+                            <span><i class="bi bi-star"></i> ${exam.totalPoints} pts</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="startExam('${exam._id}')">
+                            <i class="bi bi-play-fill"></i> Iniciar Examen
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayCompleted(results) {
+            const container = document.getElementById('completedExams');
+            
+            if (!results.length) {
+                container.innerHTML = '<p class="text-muted text-center py-5">No has completado exámenes aún</p>';
+                return;
+            }
+
+            container.innerHTML = results.map(result => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="card-title">${result.exam.title}</h5>
+                                <p class="mb-2">
+                                    <strong>Calificación:</strong> ${result.score}/${result.totalPoints} 
+                                    (${result.percentage}%)
+                                </p>
+                                <span class="badge bg-${result.isPassed ? 'success' : 'danger'}">
+                                    ${result.isPassed ? 'Aprobado ✓' : 'Reprobado ✗'}
+                                </span>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewResult('${result._id}')">
+                                    Ver Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function startExam(examId) {
+            try {
+                const response = await apiRequest(`/exams/${examId}`);
+                currentExam = response.data;
+                currentQuestions = currentExam.questions || [];
+
+                if (!currentQuestions.length) {
+                    showAlert('Este examen no tiene preguntas todavía', 'warning');
+                    return;
+                }
+
+                // Mostrar modal con preguntas
+                document.getElementById('examModalTitle').textContent = currentExam.title;
                 
-                const response = await fetch(`${API_URL}/auth/login`, {
+                const questionsHTML = currentQuestions.map((q, index) => `
+                    <div class="mb-4 p-3 border rounded">
+                        <h6><strong>Pregunta ${index + 1}</strong> (${q.points} pts)</h6>
+                        <p>${q.questionText}</p>
+                        ${renderQuestion(q, index)}
+                    </div>
+                `).join('');
+
+                document.getElementById('examModalBody').innerHTML = questionsHTML;
+                
+                const modal = new bootstrap.Modal(document.getElementById('examModal'));
+                modal.show();
+            } catch (error) {
+                showAlert('Error al cargar examen: ' + error.message, 'danger');
+            }
+        }
+
+        function renderQuestion(question, index) {
+            if (question.questionType === 'multiple-choice' || question.questionType === 'true-false') {
+                return `
+                    <div class="options">
+                        ${question.options.map((opt, optIndex) => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="question_${index}" 
+                                       id="q${index}_opt${optIndex}"
+                                       value="${opt._id}">
+                                <label class="form-check-label" for="q${index}_opt${optIndex}">
+                                    ${opt.text}
+                                </label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (question.questionType === 'short-answer') {
+                return `
+                    <input type="text" class="form-control" 
+                           id="answer_${index}" 
+                           placeholder="Escribe tu respuesta">
+                `;
+            }
+        }
+
+        async function submitExam() {
+            const answers = [];
+            
+            currentQuestions.forEach((q, index) => {
+                let selectedAnswer = '';
+                
+                if (q.questionType === 'multiple-choice' || q.questionType === 'true-false') {
+                    const selected = document.querySelector(`input[name="question_${index}"]:checked`);
+                    if (selected) {
+                        selectedAnswer = selected.value;
+                    }
+                } else if (q.questionType === 'short-answer') {
+                    selectedAnswer = document.getElementById(`answer_${index}`).value;
+                }
+
+                if (selectedAnswer) {
+                    answers.push({
+                        questionId: q._id,
+                        selectedAnswer: selectedAnswer
+                    });
+                }
+            });
+
+            if (answers.length !== currentQuestions.length) {
+                showAlert('Por favor responde todas las preguntas', 'warning');
+                return;
+            }
+
+            try {
+                const response = await apiRequest('/results', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({
+                        examId: currentExam._id,
+                        answers: answers,
+                        timeTaken: 0
+                    })
                 });
 
-                const data = await response.json();
+                // Cerrar modal de examen
+                const examModal = bootstrap.Modal.getInstance(document.getElementById('examModal'));
+                examModal.hide();
 
-                if (!response.ok) {
-                    throw new Error(data.message || 'Error al iniciar sesión');
-                }
-                
-                if (data.success) {
-                    // Guardar sesión
-                    localStorage.setItem('token', data.data.token);
-                    localStorage.setItem('user', JSON.stringify({
-                        _id: data.data._id,
-                        name: data.data.name,
-                        email: data.data.email,
-                        role: data.data.role
-                    }));
-                    
-                    showAlert('¡Bienvenido! Redirigiendo...', 'success');
-                    
-                    setTimeout(() => {
-                        if (data.data.role === 'teacher') {
-                            window.location.href = 'teacher-dashboard.html';
-                        } else {
-                            window.location.href = 'student-dashboard.html';
-                        }
-                    }, 1000);
-                }
+                // Mostrar resultado
+                const result = response.data;
+                showResultModal(result);
+
+                // Recargar exámenes
+                setTimeout(() => loadExams(), 1000);
             } catch (error) {
-                showAlert(error.message || 'Error al iniciar sesión', 'danger');
-                
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión';
+                showAlert('Error al enviar examen: ' + error.message, 'danger');
             }
-        });
+        }
+
+        function showResultModal(result) {
+            const html = `
+                <div class="text-center">
+                    <h2 class="display-4 mb-3">${result.percentage}%</h2>
+                    <h4 class="mb-4">
+                        <span class="badge bg-${result.isPassed ? 'success' : 'danger'} fs-5">
+                            ${result.isPassed ? '¡Aprobado! ✓' : 'Reprobado ✗'}
+                        </span>
+                    </h4>
+                    <p class="fs-5">
+                        <strong>Puntuación:</strong> ${result.score} / ${result.totalPoints}
+                    </p>
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar bg-${result.isPassed ? 'success' : 'danger'}" 
+                             style="width: ${result.percentage}%">
+                            ${result.percentage}%
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        ${result.answers.filter(a => a.isCorrect).length} respuestas correctas de ${result.answers.length}
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('resultModalBody').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+            modal.show();
+        }
+
+        async function viewResult(resultId) {
+            try {
+                const response = await apiRequest(`/results/${resultId}`);
+                showResultModal(response.data);
+            } catch (error) {
+                showAlert('Error al cargar resultado: ' + error.message, 'danger');
+            }
+        }
     </script>
 </body>
 </html>
