@@ -253,9 +253,14 @@
 
         async function startExam(examId) {
             try {
-                const response = await apiRequest(`/exams/${examId}`);
-                currentExam = response.data;
-                currentQuestions = currentExam.questions || [];
+                // Cargar examen y preguntas por separado
+                const [examResponse, questionsResponse] = await Promise.all([
+                    apiRequest(`/exams/${examId}`),
+                    apiRequest(`/questions/exam/${examId}`)
+                ]);
+                
+                currentExam = examResponse.data;
+                currentQuestions = questionsResponse.data || [];
 
                 if (!currentQuestions.length) {
                     showAlert('Este examen no tiene preguntas todavía', 'warning');
