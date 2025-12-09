@@ -1,7 +1,7 @@
 // Configuración de la API
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api' 
-    : '/api';
+    : 'https://exam-generator-xfaq.onrender.com/api';
 
 // Clase para manejar peticiones a la API
 class API {
