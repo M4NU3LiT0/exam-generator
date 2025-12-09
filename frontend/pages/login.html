@@ -6,9 +6,8 @@
     <title>Iniciar Sesión - Sistema de Exámenes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="../index.html">
@@ -63,13 +62,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/auth.js"></script>
     <script>
+        const API_URL = 'https://exam-generator-xfaq.onrender.com/api';
+
         // Verificar si ya está autenticado
-        const { user } = checkAuth();
-        if (user) {
-            redirectByRole(user);
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        
+        if (token && user) {
+            // Redirigir según rol
+            if (user.role === 'teacher') {
+                window.location.href = 'teacher-dashboard.html';
+            } else {
+                window.location.href = 'student-dashboard.html';
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -86,27 +105,42 @@
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
                 
-                const response = await API.post('/auth/login', { email, password });
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al iniciar sesión');
+                }
                 
-                if (response.success) {
-                    saveSession(response.data);
+                if (data.success) {
+                    // Guardar sesión
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        _id: data.data._id,
+                        name: data.data.name,
+                        email: data.data.email,
+                        role: data.data.role
+                    }));
                     
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            ¡Bienvenido! Redirigiendo...
-                        </div>
-                    `;
+                    showAlert('¡Bienvenido! Redirigiendo...', 'success');
                     
                     setTimeout(() => {
-                        redirectByRole(response.data);
+                        if (data.data.role === 'teacher') {
+                            window.location.href = 'teacher-dashboard.html';
+                        } else {
+                            window.location.href = 'student-dashboard.html';
+                        }
                     }, 1000);
                 }
             } catch (error) {
-                alertContainer.innerHTML = `
-                    <div class="alert alert-danger">
-                        ${error.message || 'Error al iniciar sesión'}
-                    </div>
-                `;
+                showAlert(error.message || 'Error al iniciar sesión', 'danger');
                 
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión';
